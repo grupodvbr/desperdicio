@@ -12,10 +12,8 @@
     background: #f4f6f8;
     margin: 0; padding: 20px;
   }
-  h1 {
-    text-align: center;
-    color: #0d1b2a;
-  }
+  h1 { text-align: center; color: #0d1b2a; }
+
   .card {
     background: white;
     padding: 20px;
@@ -24,51 +22,34 @@
     max-width: 480px;
     margin: auto;
   }
-  label {
-    font-weight: 600;
-  }
+
+  label { font-weight: 600; }
   input, button {
-    width: 100%;
-    padding: 12px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    margin-top: 6px;
-    margin-bottom: 15px;
-    font-size: 16px;
+    width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc;
+    margin-top: 6px; margin-bottom: 15px; font-size: 16px;
   }
+
   button {
-    background: #0a4fa3;
-    color: white;
-    cursor: pointer;
-    font-weight: 600;
-    transition: 0.2s;
+    background: #0a4fa3; color:white; cursor:pointer; font-weight:600;
+    transition:0.2s;
   }
-  button:hover { background: #083e82; }
+  button:hover { background:#083e82; }
 
   .notaBtn { background: #d97706; }
   .notaBtn:hover { background: #b95f04; }
 
   #totalBox {
-    background: #083e82;
-    color: white;
-    padding: 18px;
-    border-radius: 12px;
-    text-align: center;
-    margin-top: 20px;
-    font-size: 22px;
-    font-weight: bold;
+    background:#083e82; color:white; padding:18px;
+    border-radius:12px; text-align:center; margin-top:20px;
+    font-size:22px; font-weight:bold;
   }
 
   #lista, #listaTemp {
-    margin-top: 20px;
-    background: #fff;
-    padding: 12px;
-    border-radius: 10px;
+    margin-top:20px; background:#fff; padding:12px; border-radius:10px;
   }
 
   .linhaTemp {
-    padding: 6px 0;
-    border-bottom: 1px solid #eee;
+    padding:6px 0; border-bottom:1px solid #eee;
   }
 
   /* ======================
@@ -77,34 +58,26 @@
   #overlay {
     position: fixed;
     top: 0; left: 0;
-    width: 100vw;
-    height: 100vh;
+    width: 100vw; height: 100vh;
     background: rgba(0,0,0,0.45);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 999;
-    backdrop-filter: blur(3px);
+    display: flex; justify-content:center; align-items:center;
+    z-index: 999; backdrop-filter: blur(3px);
     display: none;
   }
   .loader {
-    width: 65px;
-    height: 65px;
-    border: 6px solid white;
-    border-top: 6px solid transparent;
-    border-radius: 50%;
+    width:65px; height:65px;
+    border:6px solid white;
+    border-top:6px solid transparent;
+    border-radius:50%;
     animation: spin 0.9s linear infinite;
   }
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
+  @keyframes spin { to { transform:rotate(360deg); } }
 </style>
 </head>
+
 <body>
 
-<div id="overlay">
-  <div class="loader"></div>
-</div>
+<div id="overlay"><div class="loader"></div></div>
 
 <h1>Controle de Desperdício</h1>
 
@@ -134,116 +107,124 @@
 const API = "https://script.google.com/macros/s/AKfycbzru4zj0llBUdqhowNQ0rbEvgmryRqoMVGinlVDecNnuq-DpuIAM5K8f_ilMN20IUGC/exec";
 let temporarios = [];
 
-/* ============================= */
-function showOverlay() { document.getElementById("overlay").style.display = "flex"; }
-function hideOverlay() { document.getElementById("overlay").style.display = "none"; }
+function showOverlay(){ document.getElementById("overlay").style.display="flex"; }
+function hideOverlay(){ document.getElementById("overlay").style.display="none"; }
 
 /* =============================
    MÁSCARA
 ============================= */
-function mascaraMoeda(campo) {
-  let v = campo.value.replace(/\D/g, '');
-  v = (v / 100).toFixed(2) + '';
-  v = v.replace('.', ',');
+function mascaraMoeda(campo){
+  let v = campo.value.replace(/\D/g,'');
+  v = (v/100).toFixed(2)+'';
+  v = v.replace('.',',');
   campo.value = v;
 }
 
 /* =============================
      ADICIONAR TEMP
 ============================= */
-function adicionarTemp() {
-  const item = document.getElementById("item").value.trim();
-  const valor = document.getElementById("valor").value.replace(",", ".");
+function adicionarTemp(){
+  const item = itemField.value.trim();
+  const valor = valorField.value.replace(",", ".");
 
-  if (!item || !valor) {
+  if(!item || !valor){
     alert("Preencha item e valor!");
     return;
   }
 
-  temporarios.push({ item, valor });
+  temporarios.push({item, valor});
   atualizarTemp();
 
-  document.getElementById("item").value = "";
-  document.getElementById("valor").value = "";
+  itemField.value = "";
+  valorField.value = "";
 }
 
 /* =============================
    LISTA TEMPORÁRIA
 ============================= */
-function atualizarTemp() {
+function atualizarTemp(){
   let html = "<h3>Itens adicionados:</h3>";
 
-  temporarios.forEach((t, i) => {
+  temporarios.forEach((t,i)=>{
     html += `
       <div class="linhaTemp">
         ${t.item} — R$ ${Number(t.valor).toFixed(2)}
-        <button style="margin-top:5px;background:#a00" onclick="removerTemp(${i})">Remover</button>
+        <button style="margin-top:5px;background:#a00;color:white;border:none;padding:5px;border-radius:6px;" 
+                onclick="removerTemp(${i})">Remover</button>
       </div>`;
   });
 
-  document.getElementById("listaTemp").innerHTML = html;
+  listaTemp.innerHTML = html;
 }
 
-function removerTemp(i) {
-  temporarios.splice(i, 1);
+function removerTemp(i){
+  temporarios.splice(i,1);
   atualizarTemp();
 }
 
 /* =============================
       REGISTRAR EM MASSA
 ============================= */
-async function registrarTodos() {
-  if (temporarios.length === 0) {
+async function registrarTodos(){
+  if(temporarios.length===0){
     alert("Nenhum item para registrar.");
     return;
   }
 
   showOverlay();
 
-  for (let i of temporarios) {
-    await fetch(API + "?action=registrarDesperdicio&item=" + encodeURIComponent(i.item) + "&valor=" + i.valor);
+  for(let i of temporarios){
+    await fetch(API+"?action=registrarDesperdicio&item="+encodeURIComponent(i.item)+"&valor="+i.valor);
   }
 
   temporarios = [];
-  document.getElementById("listaTemp").innerHTML = "";
+  listaTemp.innerHTML = "";
 
   await carregar();
-
   hideOverlay();
 }
 
 /* =============================
       CARREGAR LISTA
 ============================= */
-async function carregar() {
-  const dados = await fetch(API + "?action=listarDesperdicios").then(r => r.json());
+async function carregar(){
+  const dados = await fetch(API+"?action=listarDesperdicios").then(r=>r.json());
 
   let html = "";
   let total = 0;
 
-  dados.forEach(d => {
+  dados.forEach(d=>{
     html += `<p><b>${d.data}</b> — ${d.item} — R$ ${Number(d.valor).toFixed(2)}</p>`;
     total += Number(d.valor);
   });
 
-  document.getElementById("lista").innerHTML = html;
-  document.getElementById("totalBox").innerHTML = "Total acumulado: R$ " + total.toFixed(2);
+  lista.innerHTML = html;
+  totalBox.innerHTML = "Total acumulado: R$ " + total.toFixed(2);
 }
 
 /* =============================
-       EMITIR NOTA
+     SENHA + EMITIR NOTA
 ============================= */
-async function emitirNota() {
-  if (!confirm("Deseja emitir a nota e zerar o total?")) return;
+async function emitirNota(){
+  const senhaCorreta = "1983"; // 🔐 ALTERE AQUI SE QUISER
+
+  const senhaDigitada = prompt("Digite a senha para emitir a nota:");
+
+  if(senhaDigitada === null) return; // cancelou
+
+  if(senhaDigitada !== senhaCorreta){
+    alert("⚠️ Senha incorreta!");
+    return;
+  }
 
   showOverlay();
 
-  await fetch(API + "?action=emitirNota");
+  await fetch(API+"?action=emitirNota");
   await carregar();
 
   hideOverlay();
 
-  alert("Nota registrada!");
+  alert("Nota registrada com sucesso!");
 }
 
 carregar();
