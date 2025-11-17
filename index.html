@@ -70,9 +70,41 @@
     padding: 6px 0;
     border-bottom: 1px solid #eee;
   }
+
+  /* ======================
+        OVERLAY
+  ====================== */
+  #overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.45);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+    backdrop-filter: blur(3px);
+    display: none;
+  }
+  .loader {
+    width: 65px;
+    height: 65px;
+    border: 6px solid white;
+    border-top: 6px solid transparent;
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
 </style>
 </head>
 <body>
+
+<div id="overlay">
+  <div class="loader"></div>
+</div>
 
 <h1>Controle de Desperdício</h1>
 
@@ -100,11 +132,14 @@
 
 <script>
 const API = "https://script.google.com/macros/s/AKfycbx6l0rZW3DBxwt_CO-j9A0o_nQbWV9A3KDsXUBfcGcJqhoHVh-Md5AVdiaeaiK3pwY/exec";
-
 let temporarios = [];
 
+/* ============================= */
+function showOverlay() { document.getElementById("overlay").style.display = "flex"; }
+function hideOverlay() { document.getElementById("overlay").style.display = "none"; }
+
 /* =============================
-   MÁSCARA DE MOEDA
+   MÁSCARA
 ============================= */
 function mascaraMoeda(campo) {
   let v = campo.value.replace(/\D/g, '');
@@ -114,7 +149,7 @@ function mascaraMoeda(campo) {
 }
 
 /* =============================
-     ADICIONAR À LISTA TEMP
+     ADICIONAR TEMP
 ============================= */
 function adicionarTemp() {
   const item = document.getElementById("item").value.trim();
@@ -126,13 +161,15 @@ function adicionarTemp() {
   }
 
   temporarios.push({ item, valor });
-
   atualizarTemp();
 
   document.getElementById("item").value = "";
   document.getElementById("valor").value = "";
 }
 
+/* =============================
+   LISTA TEMPORÁRIA
+============================= */
 function atualizarTemp() {
   let html = "<h3>Itens adicionados:</h3>";
 
@@ -141,8 +178,7 @@ function atualizarTemp() {
       <div class="linhaTemp">
         ${t.item} — R$ ${Number(t.valor).toFixed(2)}
         <button style="margin-top:5px;background:#a00" onclick="removerTemp(${i})">Remover</button>
-      </div>
-    `;
+      </div>`;
   });
 
   document.getElementById("listaTemp").innerHTML = html;
@@ -162,6 +198,8 @@ async function registrarTodos() {
     return;
   }
 
+  showOverlay();
+
   for (let i of temporarios) {
     await fetch(API + "?action=registrarDesperdicio&item=" + encodeURIComponent(i.item) + "&valor=" + i.valor);
   }
@@ -169,15 +207,16 @@ async function registrarTodos() {
   temporarios = [];
   document.getElementById("listaTemp").innerHTML = "";
 
-  carregar();
+  await carregar();
+
+  hideOverlay();
 }
 
 /* =============================
-      LISTAR DO GAS
+      CARREGAR LISTA
 ============================= */
 async function carregar() {
-  const dados = await fetch(API + "?action=listarDesperdicios")
-    .then(r => r.json());
+  const dados = await fetch(API + "?action=listarDesperdicios").then(r => r.json());
 
   let html = "";
   let total = 0;
@@ -188,20 +227,23 @@ async function carregar() {
   });
 
   document.getElementById("lista").innerHTML = html;
-  document.getElementById("totalBox").innerHTML =
-    "Total acumulado: R$ " + total.toFixed(2);
+  document.getElementById("totalBox").innerHTML = "Total acumulado: R$ " + total.toFixed(2);
 }
 
 /* =============================
-         EMITIR NOTA
+       EMITIR NOTA
 ============================= */
 async function emitirNota() {
   if (!confirm("Deseja emitir a nota e zerar o total?")) return;
 
-  await fetch(API + "?action=emitirNota");
-  alert("Nota registrada!");
+  showOverlay();
 
-  carregar();
+  await fetch(API + "?action=emitirNota");
+  await carregar();
+
+  hideOverlay();
+
+  alert("Nota registrada!");
 }
 
 carregar();
