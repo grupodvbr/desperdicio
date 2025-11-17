@@ -45,6 +45,9 @@
   }
   button:hover { background: #083e82; }
 
+  .notaBtn { background: #d97706; }
+  .notaBtn:hover { background: #b95f04; }
+
   #totalBox {
     background: #083e82;
     color: white;
@@ -56,18 +59,16 @@
     font-weight: bold;
   }
 
-  #lista {
+  #lista, #listaTemp {
     margin-top: 20px;
     background: #fff;
     padding: 12px;
     border-radius: 10px;
   }
 
-  .notaBtn {
-    background: #d97706;
-  }
-  .notaBtn:hover {
-    background: #b95f04;
+  .linhaTemp {
+    padding: 6px 0;
+    border-bottom: 1px solid #eee;
   }
 </style>
 </head>
@@ -81,9 +82,13 @@
   <input type="text" id="item" placeholder="Ex: Tomate, Pão, Carne...">
 
   <label>Valor desperdiçado (R$)</label>
-  <input type="number" id="valor" step="0.01" placeholder="0,00">
+  <input type="text" id="valor" placeholder="0,00" oninput="mascaraMoeda(this)">
 
-  <button onclick="registrar()">Registrar Desperdício</button>
+  <button onclick="adicionarTemp()">Adicionar Item</button>
+
+  <div id="listaTemp"></div>
+
+  <button onclick="registrarTodos()">Registrar Tudo</button>
 
   <div id="totalBox">Total acumulado: R$ 0,00</div>
 
@@ -94,25 +99,82 @@
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbx6l0rZW3DBxwt_CO-j9A0o_nQbWV9A3KDsXUBfcGcJqhoHVh-Md5AVdiaeaiK3pwY/exec"; // <-- COLE A URL DO SEU WEB APP AQUI
+const API = "https://script.google.com/macros/s/AKfycbx6l0rZW3DBxwt_CO-j9A0o_nQbWV9A3KDsXUBfcGcJqhoHVh-Md5AVdiaeaiK3pwY/exec";
 
-async function registrar() {
+let temporarios = [];
+
+/* =============================
+   MÁSCARA DE MOEDA
+============================= */
+function mascaraMoeda(campo) {
+  let v = campo.value.replace(/\D/g, '');
+  v = (v / 100).toFixed(2) + '';
+  v = v.replace('.', ',');
+  campo.value = v;
+}
+
+/* =============================
+     ADICIONAR À LISTA TEMP
+============================= */
+function adicionarTemp() {
   const item = document.getElementById("item").value.trim();
-  const valor = document.getElementById("valor").value.trim();
+  const valor = document.getElementById("valor").value.replace(",", ".");
 
   if (!item || !valor) {
-    alert("Preencha todos os campos!");
+    alert("Preencha item e valor!");
     return;
   }
 
-  await fetch(API + "?action=registrarDesperdicio&item=" + encodeURIComponent(item) + "&valor=" + valor);
+  temporarios.push({ item, valor });
+
+  atualizarTemp();
 
   document.getElementById("item").value = "";
   document.getElementById("valor").value = "";
+}
+
+function atualizarTemp() {
+  let html = "<h3>Itens adicionados:</h3>";
+
+  temporarios.forEach((t, i) => {
+    html += `
+      <div class="linhaTemp">
+        ${t.item} — R$ ${Number(t.valor).toFixed(2)}
+        <button style="margin-top:5px;background:#a00" onclick="removerTemp(${i})">Remover</button>
+      </div>
+    `;
+  });
+
+  document.getElementById("listaTemp").innerHTML = html;
+}
+
+function removerTemp(i) {
+  temporarios.splice(i, 1);
+  atualizarTemp();
+}
+
+/* =============================
+      REGISTRAR EM MASSA
+============================= */
+async function registrarTodos() {
+  if (temporarios.length === 0) {
+    alert("Nenhum item para registrar.");
+    return;
+  }
+
+  for (let i of temporarios) {
+    await fetch(API + "?action=registrarDesperdicio&item=" + encodeURIComponent(i.item) + "&valor=" + i.valor);
+  }
+
+  temporarios = [];
+  document.getElementById("listaTemp").innerHTML = "";
 
   carregar();
 }
 
+/* =============================
+      LISTAR DO GAS
+============================= */
 async function carregar() {
   const dados = await fetch(API + "?action=listarDesperdicios")
     .then(r => r.json());
@@ -126,15 +188,18 @@ async function carregar() {
   });
 
   document.getElementById("lista").innerHTML = html;
-  document.getElementById("totalBox").innerHTML = "Total acumulado: R$ " + total.toFixed(2);
+  document.getElementById("totalBox").innerHTML =
+    "Total acumulado: R$ " + total.toFixed(2);
 }
 
+/* =============================
+         EMITIR NOTA
+============================= */
 async function emitirNota() {
   if (!confirm("Deseja emitir a nota e zerar o total?")) return;
 
   await fetch(API + "?action=emitirNota");
-
-  alert("Nota registrada com sucesso!");
+  alert("Nota registrada!");
 
   carregar();
 }
