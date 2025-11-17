@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Controle de Desperdício</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #f4f6f8;
+    margin: 0; padding: 20px;
+  }
+  h1 {
+    text-align: center;
+    color: #0d1b2a;
+  }
+  .card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.12);
+    max-width: 480px;
+    margin: auto;
+  }
+  label {
+    font-weight: 600;
+  }
+  input, button {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    margin-top: 6px;
+    margin-bottom: 15px;
+    font-size: 16px;
+  }
+  button {
+    background: #0a4fa3;
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.2s;
+  }
+  button:hover { background: #083e82; }
+
+  #totalBox {
+    background: #083e82;
+    color: white;
+    padding: 18px;
+    border-radius: 12px;
+    text-align: center;
+    margin-top: 20px;
+    font-size: 22px;
+    font-weight: bold;
+  }
+
+  #lista {
+    margin-top: 20px;
+    background: #fff;
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .notaBtn {
+    background: #d97706;
+  }
+  .notaBtn:hover {
+    background: #b95f04;
+  }
+</style>
+</head>
+<body>
+
+<h1>Controle de Desperdício</h1>
+
+<div class="card">
+
+  <label>Item desperdiçado</label>
+  <input type="text" id="item" placeholder="Ex: Tomate, Pão, Carne...">
+
+  <label>Valor desperdiçado (R$)</label>
+  <input type="number" id="valor" step="0.01" placeholder="0,00">
+
+  <button onclick="registrar()">Registrar Desperdício</button>
+
+  <div id="totalBox">Total acumulado: R$ 0,00</div>
+
+  <button class="notaBtn" onclick="emitirNota()">Emitir Nota</button>
+
+  <div id="lista"></div>
+
+</div>
+
+<script>
+const API = "https://script.google.com/macros/s/AKfycbx6l0rZW3DBxwt_CO-j9A0o_nQbWV9A3KDsXUBfcGcJqhoHVh-Md5AVdiaeaiK3pwY/exec"; // <-- COLE A URL DO SEU WEB APP AQUI
+
+async function registrar() {
+  const item = document.getElementById("item").value.trim();
+  const valor = document.getElementById("valor").value.trim();
+
+  if (!item || !valor) {
+    alert("Preencha todos os campos!");
+    return;
+  }
+
+  await fetch(API + "?action=registrarDesperdicio&item=" + encodeURIComponent(item) + "&valor=" + valor);
+
+  document.getElementById("item").value = "";
+  document.getElementById("valor").value = "";
+
+  carregar();
+}
+
+async function carregar() {
+  const dados = await fetch(API + "?action=listarDesperdicios")
+    .then(r => r.json());
+
+  let html = "";
+  let total = 0;
+
+  dados.forEach(d => {
+    html += `<p><b>${d.data}</b> — ${d.item} — R$ ${Number(d.valor).toFixed(2)}</p>`;
+    total += Number(d.valor);
+  });
+
+  document.getElementById("lista").innerHTML = html;
+  document.getElementById("totalBox").innerHTML = "Total acumulado: R$ " + total.toFixed(2);
+}
+
+async function emitirNota() {
+  if (!confirm("Deseja emitir a nota e zerar o total?")) return;
+
+  await fetch(API + "?action=emitirNota");
+
+  alert("Nota registrada com sucesso!");
+
+  carregar();
+}
+
+carregar();
+</script>
+
+</body>
+</html>
