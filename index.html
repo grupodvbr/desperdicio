@@ -24,7 +24,7 @@
   }
 
   label { font-weight: 600; }
-  input, button, textarea {
+  input, button, textarea, select {
     width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc;
     margin-top: 6px; margin-bottom: 15px; font-size: 16px;
   }
@@ -94,6 +94,18 @@
   <label>Valor desperdiçado (R$)</label>
   <input type="text" id="valor" placeholder="0,00" oninput="mascaraMoeda(this)">
 
+  <label>Unidade de Medida (UND)</label>
+  <select id="und">
+    <option value="">Selecione...</option>
+    <option value="KG">KG</option>
+    <option value="G">G</option>
+    <option value="UN">UN</option>
+    <option value="L">L</option>
+    <option value="ML">ML</option>
+    <option value="CX">CX</option>
+    <option value="PCT">PCT</option>
+  </select>
+
   <label>Observação</label>
   <textarea id="obs" placeholder="Detalhes do desperdício..."></textarea>
 
@@ -112,7 +124,7 @@
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbwN6FRtQpMTMoUemXI4b_g2znZl0dopRn1OXn_k9ug0hghd_qDNdW4o3BAa97NZlL48/exec";
+const API = "https://script.google.com/macros/s/AKfycbwywq6Tgmr53wIfTGPnzUN68KO3qDO-PrPcsv7fuPAgihGXugpl3TvC_JKFyExAqRXX/exec";
 let temporarios = [];
 
 function showOverlay(){ document.getElementById("overlay").style.display="flex"; }
@@ -135,18 +147,20 @@ function adicionarTemp(){
 
   const item = document.getElementById("item").value.trim();
   const valor = document.getElementById("valor").value.replace(",", ".");
+  const und = document.getElementById("und").value;
   const obs = document.getElementById("obs").value.trim();
 
-  if(!item || !valor){
-    alert("Preencha item e valor!");
+  if(!item || !valor || !und){
+    alert("Preencha item, valor e unidade de medida!");
     return;
   }
 
-  temporarios.push({ item, valor, obs });
+  temporarios.push({ item, valor, und, obs });
   atualizarTemp();
 
   document.getElementById("item").value = "";
   document.getElementById("valor").value = "";
+  document.getElementById("und").value = "";
   document.getElementById("obs").value = "";
 }
 
@@ -159,7 +173,7 @@ function atualizarTemp(){
   temporarios.forEach((t,i)=>{
     html += `
       <div class="linhaTemp">
-        <b>${t.item}</b> — R$ ${Number(t.valor).toFixed(2)}<br>
+        <b>${t.item}</b> (${t.und}) — R$ ${Number(t.valor).toFixed(2)}<br>
         <small><i>${t.obs || ""}</i></small><br>
         <button style="margin-top:5px;background:#a00;color:white;border:none;padding:5px;border-radius:6px;" 
                 onclick="removerTemp(${i})">Remover</button>
@@ -186,7 +200,10 @@ async function registrarTodos(){
   showOverlay();
 
   for(let i of temporarios){
-    await fetch(API+"?action=registrarDesperdicio&item="+encodeURIComponent(i.item)+"&valor="+i.valor+"&obs="+encodeURIComponent(i.obs));
+    await fetch(API+"?action=registrarDesperdicio&item="+encodeURIComponent(i.item)
+      +"&valor="+i.valor
+      +"&und="+encodeURIComponent(i.und)
+      +"&obs="+encodeURIComponent(i.obs));
   }
 
   temporarios = [];
@@ -208,7 +225,7 @@ async function carregar(){
   dados.forEach(d=>{
     html += `
       <p>
-        <b>${d.data}</b> — ${d.item} — R$ ${Number(d.valor).toFixed(2)}<br>
+        <b>${d.data}</b> — ${d.item} (${d.und}) — R$ ${Number(d.valor).toFixed(2)}<br>
         <i>${d.obs || ""}</i>
       </p>`;
     total += Number(d.valor);
