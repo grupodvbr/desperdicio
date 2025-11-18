@@ -132,9 +132,10 @@ function mascaraMoeda(campo){
      ADICIONAR TEMP
 ============================= */
 function adicionarTemp(){
-  const item = itemField.value.trim();
-  const valor = valorField.value.replace(",", ".");
-  const obs = obsField.value.trim();
+
+  const item = document.getElementById("item").value.trim();
+  const valor = document.getElementById("valor").value.replace(",", ".");
+  const obs = document.getElementById("obs").value.trim();
 
   if(!item || !valor){
     alert("Preencha item e valor!");
@@ -144,9 +145,9 @@ function adicionarTemp(){
   temporarios.push({ item, valor, obs });
   atualizarTemp();
 
-  itemField.value = "";
-  valorField.value = "";
-  obsField.value = "";
+  document.getElementById("item").value = "";
+  document.getElementById("valor").value = "";
+  document.getElementById("obs").value = "";
 }
 
 /* =============================
