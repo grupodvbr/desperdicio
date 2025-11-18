@@ -24,9 +24,14 @@
   }
 
   label { font-weight: 600; }
-  input, button {
+  input, button, textarea {
     width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc;
     margin-top: 6px; margin-bottom: 15px; font-size: 16px;
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 70px;
   }
 
   button {
@@ -49,7 +54,7 @@
   }
 
   .linhaTemp {
-    padding:6px 0; border-bottom:1px solid #eee;
+    padding:10px 0; border-bottom:1px solid #eee;
   }
 
   /* ======================
@@ -89,6 +94,9 @@
   <label>Valor desperdiçado (R$)</label>
   <input type="text" id="valor" placeholder="0,00" oninput="mascaraMoeda(this)">
 
+  <label>Observação</label>
+  <textarea id="obs" placeholder="Detalhes do desperdício..."></textarea>
+
   <button onclick="adicionarTemp()">Adicionar Item</button>
 
   <div id="listaTemp"></div>
@@ -104,7 +112,7 @@
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbzru4zj0llBUdqhowNQ0rbEvgmryRqoMVGinlVDecNnuq-DpuIAM5K8f_ilMN20IUGC/exec";
+const API = "https://script.google.com/macros/s/AKfycbwN6FRtQpMTMoUemXI4b_g2znZl0dopRn1OXn_k9ug0hghd_qDNdW4o3BAa97NZlL48/exec";
 let temporarios = [];
 
 function showOverlay(){ document.getElementById("overlay").style.display="flex"; }
@@ -126,17 +134,19 @@ function mascaraMoeda(campo){
 function adicionarTemp(){
   const item = itemField.value.trim();
   const valor = valorField.value.replace(",", ".");
+  const obs = obsField.value.trim();
 
   if(!item || !valor){
     alert("Preencha item e valor!");
     return;
   }
 
-  temporarios.push({item, valor});
+  temporarios.push({ item, valor, obs });
   atualizarTemp();
 
   itemField.value = "";
   valorField.value = "";
+  obsField.value = "";
 }
 
 /* =============================
@@ -148,7 +158,8 @@ function atualizarTemp(){
   temporarios.forEach((t,i)=>{
     html += `
       <div class="linhaTemp">
-        ${t.item} — R$ ${Number(t.valor).toFixed(2)}
+        <b>${t.item}</b> — R$ ${Number(t.valor).toFixed(2)}<br>
+        <small><i>${t.obs || ""}</i></small><br>
         <button style="margin-top:5px;background:#a00;color:white;border:none;padding:5px;border-radius:6px;" 
                 onclick="removerTemp(${i})">Remover</button>
       </div>`;
@@ -174,7 +185,7 @@ async function registrarTodos(){
   showOverlay();
 
   for(let i of temporarios){
-    await fetch(API+"?action=registrarDesperdicio&item="+encodeURIComponent(i.item)+"&valor="+i.valor);
+    await fetch(API+"?action=registrarDesperdicio&item="+encodeURIComponent(i.item)+"&valor="+i.valor+"&obs="+encodeURIComponent(i.obs));
   }
 
   temporarios = [];
@@ -194,7 +205,11 @@ async function carregar(){
   let total = 0;
 
   dados.forEach(d=>{
-    html += `<p><b>${d.data}</b> — ${d.item} — R$ ${Number(d.valor).toFixed(2)}</p>`;
+    html += `
+      <p>
+        <b>${d.data}</b> — ${d.item} — R$ ${Number(d.valor).toFixed(2)}<br>
+        <i>${d.obs || ""}</i>
+      </p>`;
     total += Number(d.valor);
   });
 
@@ -206,11 +221,11 @@ async function carregar(){
      SENHA + EMITIR NOTA
 ============================= */
 async function emitirNota(){
-  const senhaCorreta = "1983"; // 🔐 ALTERE AQUI SE QUISER
+  const senhaCorreta = "1983";
 
   const senhaDigitada = prompt("Digite a senha para emitir a nota:");
 
-  if(senhaDigitada === null) return; // cancelou
+  if(senhaDigitada === null) return;
 
   if(senhaDigitada !== senhaCorreta){
     alert("⚠️ Senha incorreta!");
