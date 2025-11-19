@@ -88,13 +88,13 @@
 
 <div class="card">
 
-  <label>Item desperdiçado</label>
+  <label>Item</label>
   <input type="text" id="item" placeholder="Ex: Tomate, Pão, Carne...">
 
-  <label>Valor desperdiçado (R$)</label>
+  <label>Valor (R$)</label>
   <input type="text" id="valor" placeholder="0,00" oninput="mascaraMoeda(this)">
 
-  <label>Unidade de Medida (UND)</label>
+  <label>Unidade de Medida</label>
   <select id="und">
     <option value="">Selecione...</option>
     <option value="KG">KG</option>
@@ -130,9 +130,6 @@ let temporarios = [];
 function showOverlay(){ document.getElementById("overlay").style.display="flex"; }
 function hideOverlay(){ document.getElementById("overlay").style.display="none"; }
 
-/* =============================
-   MÁSCARA
-============================= */
 function mascaraMoeda(campo){
   let v = campo.value.replace(/\D/g,'');
   v = (v/100).toFixed(2)+'';
@@ -140,9 +137,6 @@ function mascaraMoeda(campo){
   campo.value = v;
 }
 
-/* =============================
-     ADICIONAR TEMP
-============================= */
 function adicionarTemp(){
 
   const item = document.getElementById("item").value.trim();
@@ -164,9 +158,6 @@ function adicionarTemp(){
   document.getElementById("obs").value = "";
 }
 
-/* =============================
-   LISTA TEMPORÁRIA
-============================= */
 function atualizarTemp(){
   let html = "<h3>Itens adicionados:</h3>";
 
@@ -188,9 +179,6 @@ function removerTemp(i){
   atualizarTemp();
 }
 
-/* =============================
-      REGISTRAR EM MASSA
-============================= */
 async function registrarTodos(){
   if(temporarios.length===0){
     alert("Nenhum item para registrar.");
@@ -213,9 +201,6 @@ async function registrarTodos(){
   hideOverlay();
 }
 
-/* =============================
-      CARREGAR LISTA
-============================= */
 async function carregar(){
   const dados = await fetch(API+"?action=listarDesperdicios").then(r=>r.json());
 
@@ -235,9 +220,6 @@ async function carregar(){
   totalBox.innerHTML = "Total acumulado: R$ " + total.toFixed(2);
 }
 
-/* =============================
-     SENHA + EMITIR NOTA
-============================= */
 async function emitirNota(){
   const senhaCorreta = "1983";
 
