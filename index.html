@@ -91,7 +91,7 @@
   <label>Item</label>
   <input type="text" id="item" placeholder="Ex: Tomate, Pão, Carne...">
 
-  <label>Valor (R$)</label>
+  <label>Valor (R$) — OPCIONAL</label>
   <input type="text" id="valor" placeholder="0,00" oninput="mascaraMoeda(this)">
 
   <label>Unidade de Medida</label>
@@ -106,7 +106,7 @@
     <option value="PCT">PCT</option>
   </select>
 
-  <label>Observação</label>
+  <label>Observação — OPCIONAL</label>
   <textarea id="obs" placeholder="Detalhes do desperdício..."></textarea>
 
   <button onclick="adicionarTemp()">Adicionar Item</button>
@@ -144,12 +144,14 @@ function adicionarTemp(){
   const und = document.getElementById("und").value;
   const obs = document.getElementById("obs").value.trim();
 
-  if(!item || !valor || !und){
-    alert("Preencha item, valor e unidade de medida!");
+  if(!item || !und){
+    alert("Preencha o item e a unidade de medida!");
     return;
   }
 
-  temporarios.push({ item, valor, und, obs });
+  const valorFinal = (valor === "" || valor === null) ? 0 : Number(valor);
+
+  temporarios.push({ item, valor: valorFinal, und, obs });
   atualizarTemp();
 
   document.getElementById("item").value = "";
